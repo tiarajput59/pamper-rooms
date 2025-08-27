@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Submit Location Request</title>
+<style>
+  body{font-family:Arial, sans-serif; margin:0; padding:16px; background:#f7f9fc}
+  .card{max-width:720px; margin:0 auto; background:white; padding:16px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+  label{display:block; margin-top:12px; font-size:14px}
+  input, select, textarea, button{width:100%; padding:10px; margin-top:6px; font-size:16px; border-radius:8px; border:1px solid #ddd; box-sizing:border-box}
+  button{background:#0b6ef6;color:#fff;border:0}
+  .msg{padding:10px;border-radius:8px;margin-top:12px;display:none}
+  .success{background:#e6ffed;color:#04602a;border:1px solid #b6f0cf}
+  .error{background:#ffecec;color:#711111;border:1px solid #f0b3b3}
+</style>
+</head>
+<body>
+  <div class="card">
+    <h2>Request our next space</h2>
+    <form id="contactForm">
+      <input type="hidden" name="formType" value="carousel_form">
+      <label>Name *</label>
+      <input name="name" type="text" required placeholder="Full name">
+      <label>Email (or phone)</label>
+      <input name="email" type="email" placeholder="Email">
+      <input name="phone" type="tel" placeholder="Phone number">
+      <label>State</label>
+      <select name="state" required>
+        <option value="">Choose state</option>
+        <option>Delhi</option><option>Maharashtra</option><option>Karnataka</option><option>Tamil Nadu</option>
+      </select>
+      <label>City</label>
+      <select name="city" required>
+        <option value="">Choose city</option>
+      </select>
+      <label>Exact location</label>
+      <input name="location" type="text" placeholder="Area / landmark">
+      <label>Notes</label>
+      <textarea name="notes" rows="3" placeholder="Any additional info"></textarea>
+
+      <!-- optional secret token -->
+      <input type="hidden" name="secret" value="">
+
+      <button type="submit">Submit</button>
+    </form>
+
+    <div id="msg" class="msg"></div>
+  </div>
+
+<script>
+  // ========== CONFIG ==========
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwY4vPY13ItdC4Rk5vfhUU_e_3S3D-bNiDWLKksdAbV8ufdwiCIqnnqtIFTy7IM3Bka/exec'; // paste Apps Script web app URL
+  // ============================
+
+  // Simple example of dynamic city population
+  const citiesByState = {
+    'Delhi': ['Connaught Place','Saket','Nehru Place'],
+    'Maharashtra': ['Mumbai - South','Andheri','Pune - Shivajinagar'],
+    'Karnataka': ['Bangalore - Koramangala','Bangalore - Whitefield'],
+    'Tamil Nadu': ['Chennai - Nungambakkam','Coimbatore - Town']
+  };
+  const form = document.getElementById('contactForm');
+  const stateSelect = form.querySelector('select[name=state]');
+  const citySelect = form.querySelector('select[name=city]');
+  const msg = document.getElementById('msg');
+
+  stateSelect.addEventListener('change', () => {
+    const s = stateSelect.value;
+    citySelect.innerHTML = '<option value=\"\">Choose city</option>';
+    if (citiesByState[s]) {
+      citiesByState[s].forEach(c => {
+        const o = document.createElement('option'); o.value = c; o.textContent = c; citySelect.appendChild(o);
+      });
+    }
+  });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    msg.style.display = 'none';
+
+    // Basic client validation: email or phone required
+    const email = form.email.value.trim();
+    const phone = form.phone.value.trim();
+    if (!email && !phone) {
+      showMsg('Please provide either an email or a phone number.', 'error'); return;
+    }
+
+    // Build application/x-www-form-urlencoded body (this is a "simple request")
+    const data = new URLSearchParams(new FormData(form)).toString();
+
+    try {
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8'},
+        body: data
+      });
+      const json = await res.json();
+      if (json.result === 'success') {
+        form.reset();
+        showMsg('Thanks! Your response has been recorded.', 'success');
+      } else {
+        showMsg('Server error: ' + (json.error || 'unknown'), 'error');
+        console.error(json);
+      }
+    } catch (err) {
+      showMsg('Network error - try again.', 'error');
+      console.error(err);
+    }
+  });
+
+  function showMsg(text, type) {
+    msg.textContent = text;
+    msg.className = 'msg ' + (type === 'success' ? 'success' : 'error');
+    msg.style.display = 'block';
+  }
+</script>
+</body>
+</html>
