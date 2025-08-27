@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>5 Slide Carousel</title>
+  <style>
+    * {margin:0; padding:0; box-sizing:border-box;}
+    body {font-family: Arial, sans-serif; overflow-x: hidden;}
+
+    /* Title */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 15px;
+      background: #fff;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    header img {
+      height: 40px;
+    }
+
+    /* Hamburger */
+    .hamburger {
+      font-size: 26px;
+      cursor: pointer;
+    }
+    .menu {
+      display: none;
+      position: absolute;
+      right: 10px;
+      top: 55px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+      padding: 10px;
+    }
+    .menu a {
+      display: block;
+      text-decoration: none;
+      padding: 8px 12px;
+      color: #333;
+    }
+    .menu a:hover {background:#f0f0f0;}
+
+    /* Carousel container */
+    .carousel {
+      position: relative;
+      height: 100vh;
+      width: 100%;
+      margin-top: 60px; /* space for header */
+      overflow: hidden;
+    }
+    .slides {
+      display: flex;
+      transition: transform 0.5s ease-in-out;
+      height: 100%;
+    }
+    .slide {
+      min-width: 100%;
+      height: 100%;
+    }
+    .slide img {
+      width: 100%;
+      height: calc(100% - 60px);
+      object-fit: cover;
+    }
+
+    /* Arrows */
+    .arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 32px;
+      color: white;
+      background: rgba(0,0,0,0.5);
+      border-radius: 50%;
+      padding: 8px 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .arrow.left {left: 10px;}
+    .arrow.right {right: 10px;}
+
+    /* Dots */
+    .dots {
+      text-align: center;
+      position: absolute;
+      bottom: 15px;
+      width: 100%;
+    }
+    .dots span {
+      height: 12px;
+      width: 12px;
+      margin: 0 5px;
+      display: inline-block;
+      background: #bbb;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .dots .active {
+      background: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="https://via.placeholder.com/120x40?text=Title" alt="Title Logo">
+    <div class="hamburger" onclick="toggleMenu()">☰</div>
+    <div class="menu" id="menu">
+      <a href="#form1">Form 1</a>
+      <a href="#form2">Form 2</a>
+    </div>
+  </header>
+
+  <div class="carousel">
+    <div class="slides" id="slides">
+      <div class="slide"><img src="image1.jpg"></div>
+      <div class="slide"><img src="image2.jpg"></div>
+      <div class="slide"><img src="https://via.placeholder.com/400x800/99ff99/fff?text=Slide+3"></div>
+      <div class="slide"><img src="https://via.placeholder.com/400x800/ffcc66/fff?text=Slide+4"></div>
+      <div class="slide"><img src="https://via.placeholder.com/400x800/cc99ff/fff?text=Slide+5"></div>
+    </div>
+    <div class="arrow left" onclick="moveSlide(-1)">❮</div>
+    <div class="arrow right" onclick="moveSlide(1)">❯</div>
+    <div class="dots" id="dots"></div>
+  </div>
+
+  <script>
+    let currentIndex = 0;
+    const slides = document.getElementById("slides");
+    const totalSlides = slides.children.length;
+    const dotsContainer = document.getElementById("dots");
+
+    // Generate dots
+    for (let i=0; i<totalSlides; i++) {
+      let dot = document.createElement("span");
+      dot.setAttribute("onclick", `goToSlide(${i})`);
+      if(i === 0) dot.classList.add("active");
+      dotsContainer.appendChild(dot);
+    }
+
+    function updateCarousel() {
+      slides.style.transform = `translateX(-${currentIndex * 100}%)`;
+      let dots = dotsContainer.children;
+      for (let i=0; i<dots.length; i++) {
+        dots[i].classList.remove("active");
+      }
+      dots[currentIndex].classList.add("active");
+    }
+
+    function moveSlide(direction) {
+      currentIndex += direction;
+      if (currentIndex < 0) currentIndex = totalSlides - 1;
+      if (currentIndex >= totalSlides) currentIndex = 0;
+      updateCarousel();
+    }
+
+    function goToSlide(index) {
+      currentIndex = index;
+      updateCarousel();
+    }
+
+    // Swipe gestures
+    let startX = 0;
+    slides.addEventListener("touchstart", e => startX = e.touches[0].clientX);
+    slides.addEventListener("touchend", e => {
+      let endX = e.changedTouches[0].clientX;
+      if (endX < startX - 50) moveSlide(1); // swipe left
+      if (endX > startX + 50) moveSlide(-1); // swipe right
+    });
+
+    // Hamburger toggle
+    function toggleMenu() {
+      let menu = document.getElementById("menu");
+      menu.style.display = (menu.style.display === "block") ? "none" : "block";
+    }
+  </script>
+
+</body>
+</html>
